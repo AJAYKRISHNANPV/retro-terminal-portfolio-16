@@ -288,8 +288,10 @@ export function Terminal({ onSwitchToGui }: Props) {
     if (e.key === "Enter") { e.preventDefault(); submit(); return; }
     if (e.key === "Tab") {
       e.preventDefault();
+      if (!input.trim()) return;
       const tokens = input.split(/\s+/);
       const last = tokens[tokens.length - 1] ?? "";
+      if (!last) return;
       const pool = completionPool();
       const matches = pool.filter((c) => c.startsWith(last));
       if (matches.length === 1) {
@@ -302,17 +304,18 @@ export function Terminal({ onSwitchToGui }: Props) {
     }
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      const cmds = sessionCmds;
+      const cmds = sessionCmds.filter((c) => c.trim());
       if (!cmds.length) return;
       const next = recall === null ? cmds.length - 1 : Math.max(0, recall - 1);
       setRecall(next); setInput(cmds[next] ?? "");
     }
     if (e.key === "ArrowDown") {
       e.preventDefault();
+      const cmds = sessionCmds.filter((c) => c.trim());
       if (recall === null) return;
       const next = recall + 1;
-      if (next >= sessionCmds.length) { setRecall(null); setInput(""); }
-      else { setRecall(next); setInput(sessionCmds[next] ?? ""); }
+      if (next >= cmds.length) { setRecall(null); setInput(""); }
+      else { setRecall(next); setInput(cmds[next] ?? ""); }
     }
   };
 

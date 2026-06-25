@@ -142,7 +142,8 @@ export function Terminal({ onSwitchToGui }: Props) {
 
     // history command
     if (lines[0] === "__HISTORY__") {
-      lines = sessionCmds.map((c, i) => `  ${String(i + 1).padStart(3, " ")}  ${c}`);
+      const cmds = sessionCmds.filter((c) => c.trim());
+      lines = cmds.map((c, i) => `  ${String(i + 1).padStart(3, " ")}  ${c}`);
       if (!lines.length) lines = ["(no commands yet)"];
     }
 

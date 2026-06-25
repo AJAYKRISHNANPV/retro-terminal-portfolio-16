@@ -9,7 +9,7 @@ type HistoryEntry = {
   output: string[];
 };
 
-type Mode = "shell" | "repl-py" | "repl-js" | "snake" | "contact" | "hack" | "selfdestruct";
+type Mode = "shell" | "snake" | "contact" | "hack" | "selfdestruct";
 
 type Props = {
   onSwitchToGui?: () => void;
@@ -78,11 +78,21 @@ export function Terminal({ onSwitchToGui }: Props) {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [history, username]);
+  useEffect(() => {
+    if (mode !== "snake") return;
+    const prevHtml = document.documentElement.style.overflow;
+    const prevBody = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.documentElement.style.overflow = prevHtml;
+      document.body.style.overflow = prevBody;
+    };
+  }, [mode]);
 
   const cwdStr = cwd.length ? `~/${cwd.map((s) => s.replace(/\/$/, "")).join("/")}` : "~";
   const basePrompt = `${username ?? "guest"}@ajay-portfolio:${cwdStr}$`;
   const promptLabel = useMemo(() => {
-    if (mode === "repl-py" || mode === "repl-js") return ">>>";
     if (mode === "contact") {
       if (contactStep === "channel") return "channel (1: Email, 2: WhatsApp):";
       if (contactStep === "email-addr") return "your email:";
@@ -128,8 +138,9 @@ export function Terminal({ onSwitchToGui }: Props) {
   // ====== handlers ======
 
   const submitShell = (raw: string) => {
-    setSessionCmds((c) => [...c, raw]);
+    if (raw.trim()) setSessionCmds((c) => [...c, raw]);
     append({ prompt: basePrompt, command: raw, output: [] });
+    if (!raw.trim()) return;
 
     const res: CommandResult = runCommand(raw, {
       username: username ?? "guest",
@@ -142,7 +153,8 @@ export function Terminal({ onSwitchToGui }: Props) {
 
     // history command
     if (lines[0] === "__HISTORY__") {
-      lines = sessionCmds.map((c, i) => `  ${String(i + 1).padStart(3, " ")}  ${c}`);
+      const cmds = sessionCmds.filter((c) => c.trim());
+      lines = cmds.map((c, i) => `  ${String(i + 1).padStart(3, " ")}  ${c}`);
       if (!lines.length) lines = ["(no commands yet)"];
     }
 
@@ -157,8 +169,6 @@ export function Terminal({ onSwitchToGui }: Props) {
     }
 
     if (res.enterMode === "snake") setMode("snake");
-    else if (res.enterMode === "repl-py") setMode("repl-py");
-    else if (res.enterMode === "repl-js") setMode("repl-js");
     else if (res.enterMode === "contact") {
       setMode("contact"); setContactStep("channel");
       appendLines([
@@ -183,19 +193,6 @@ export function Terminal({ onSwitchToGui }: Props) {
     }
   };
 
-  const submitRepl = (raw: string) => {
-    append({ prompt: ">>>", command: raw, output: [] });
-    if (raw.trim() === "exit()") { setMode("shell"); appendLines(["(returned to shell)"]); return; }
-    const isJs = mode === "repl-js";
-    try {
-      // sandboxed eval — Function constructor; no globals beyond Math
-      const fn = new Function("Math", `"use strict"; return (${raw});`);
-      const val = fn(Math);
-      appendLines([isJs ? String(val) : pythonRepr(val)]);
-    } catch (e) {
-      appendLines([`${isJs ? "SyntaxError" : "Traceback (most recent call last):"}: ${(e as Error).message}`]);
-    }
-  };
 
   const submitContact = (raw: string) => {
     append({ prompt: promptLabel, command: raw, output: [] });
@@ -283,7 +280,6 @@ export function Terminal({ onSwitchToGui }: Props) {
     setRecall(null);
     if (!raw.trim() && mode !== "shell") return;
     if (mode === "shell") submitShell(raw);
-    else if (mode === "repl-py" || mode === "repl-js") submitRepl(raw);
     else if (mode === "contact") submitContact(raw);
     else if (mode === "hack") submitHack(raw);
   };
@@ -304,8 +300,10 @@ export function Terminal({ onSwitchToGui }: Props) {
     if (e.key === "Enter") { e.preventDefault(); submit(); return; }
     if (e.key === "Tab") {
       e.preventDefault();
+      if (!input.trim()) return;
       const tokens = input.split(/\s+/);
       const last = tokens[tokens.length - 1] ?? "";
+      if (!last) return;
       const pool = completionPool();
       const matches = pool.filter((c) => c.startsWith(last));
       if (matches.length === 1) {
@@ -318,17 +316,18 @@ export function Terminal({ onSwitchToGui }: Props) {
     }
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      const cmds = sessionCmds;
+      const cmds = sessionCmds.filter((c) => c.trim());
       if (!cmds.length) return;
       const next = recall === null ? cmds.length - 1 : Math.max(0, recall - 1);
       setRecall(next); setInput(cmds[next] ?? "");
     }
     if (e.key === "ArrowDown") {
       e.preventDefault();
+      const cmds = sessionCmds.filter((c) => c.trim());
       if (recall === null) return;
       const next = recall + 1;
-      if (next >= sessionCmds.length) { setRecall(null); setInput(""); }
-      else { setRecall(next); setInput(sessionCmds[next] ?? ""); }
+      if (next >= cmds.length) { setRecall(null); setInput(""); }
+      else { setRecall(next); setInput(cmds[next] ?? ""); }
     }
   };
 
@@ -363,7 +362,7 @@ export function Terminal({ onSwitchToGui }: Props) {
     if (mode !== "shell" || !input) return <span>{input}</span>;
     const [head, ...rest] = input.split(/(\s+)/); // keep spaces
     const headLower = head.toLowerCase();
-    const valid = (COMMANDS as readonly string[]).includes(headLower) || headLower === "py" || headLower === "node";
+    const valid = (COMMANDS as readonly string[]).includes(headLower);
     const isSudo = headLower === "sudo";
     return (
       <>
@@ -394,7 +393,11 @@ export function Terminal({ onSwitchToGui }: Props) {
 
         {/* screen */}
         <div className="crt-screen relative flex-1 overflow-y-auto px-3 py-3 sm:px-5 sm:py-4">
-          {!username ? (
+          {mode === "snake" && username ? (
+            <div className="absolute inset-0 z-10 flex h-full w-full items-center justify-center bg-[#0a0a0a] p-3 sm:p-6">
+              <SnakeGame onExit={() => { setMode("shell"); appendLines(["(exited snake)"]); }} />
+            </div>
+          ) : !username ? (
             <>
               <pre className="crt-glow whitespace-pre-wrap break-words">
 {`Initializing session...
@@ -443,27 +446,21 @@ Type 'help' to see the list of available commands.`}
                 </div>
               ))}
 
-              {mode === "snake" ? (
-                <SnakeGame onExit={() => { setMode("shell"); appendLines(["(exited snake)"]); }} />
-              ) : (
-                <div className="crt-glow flex items-center gap-2 break-all">
-                  <span className="text-[color:var(--term-prompt)] shrink-0">{promptLabel}</span>
-                  <span className="whitespace-pre-wrap">{inputHighlight()}</span>
-                  <span className="cursor-block" aria-hidden="true" />
-                </div>
-              )}
+              <div className="crt-glow flex items-center gap-2 break-all">
+                <span className="text-[color:var(--term-prompt)] shrink-0">{promptLabel}</span>
+                <span className="whitespace-pre-wrap">{inputHighlight()}</span>
+                <span className="cursor-block" aria-hidden="true" />
+              </div>
 
-              {mode !== "snake" && (
-                <input
-                  ref={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={onKeyDown}
-                  autoFocus autoCapitalize="off" autoCorrect="off" spellCheck={false}
-                  aria-label="Terminal command input"
-                  className="sr-only-input"
-                />
-              )}
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={onKeyDown}
+                autoFocus autoCapitalize="off" autoCorrect="off" spellCheck={false}
+                aria-label="Terminal command input"
+                className="sr-only-input"
+              />
             </>
           )}
 
@@ -472,11 +469,4 @@ Type 'help' to see the list of available commands.`}
       </div>
     </div>
   );
-}
-
-function pythonRepr(v: unknown): string {
-  if (typeof v === "string") return `'${v}'`;
-  if (v === null || v === undefined) return "None";
-  if (typeof v === "boolean") return v ? "True" : "False";
-  return String(v);
 }

@@ -4,74 +4,13 @@ export type CommandResult = {
   lines?: string[];
   clear?: boolean;
   gui?: boolean;
-  enterMode?: "snake" | "repl-py" | "repl-js" | "contact" | "hack" | "selfdestruct";
+  enterMode?: "snake" | "contact" | "hack" | "selfdestruct";
   theme?: ThemeName;
   download?: { url: string; filename?: string };
 };
 
-export type FsFile = { type: "file"; content: string[] | "binary" };
-export type FsDir = { type: "dir"; children: Record<string, FsFile | FsDir> };
-
-export const FS: FsDir = {
-  type: "dir",
-  children: {
-    "bio.txt": {
-      type: "file",
-      content: [
-        "Ajay — IT Professional & DevOps / Cloud Infrastructure enthusiast.",
-        "I build automated pipelines, wire up cloud infrastructure, and",
-        "spend far too much time tinkering with Linux systems.",
-      ],
-    },
-    "skills.md": {
-      type: "file",
-      content: [
-        "# skills",
-        "",
-        "- devops/cicd:  Jenkins · GitHub Actions · n8n",
-        "- cloud/iac:    AWS · Terraform",
-        "- containers:   Kubernetes · Docker",
-        "- scripting:    Bash · Python",
-        "- systems:      Linux · Networking · Monitoring",
-      ],
-    },
-    "resume.pdf": { type: "file", content: "binary" },
-    ".env_secret": {
-      type: "file",
-      content: [
-        "🕵️  Curiosity rewarded.",
-        "You found the hidden file. Shortcut unlocked:",
-        "    → type 'contact' to reach Ajay directly.",
-      ],
-    },
-    projects: {
-      type: "dir",
-      children: {
-        "zenoure_jewels/": { type: "dir", children: {} },
-        "telegram_bots/": { type: "dir", children: {} },
-        "selfhosted_cloud/": { type: "dir", children: {} },
-      },
-    },
-  },
-};
-
-export const COMMANDS = [
-  "help","bio","skills","projects","work","social","secret","sudo","clear",
-  "gui","exit","whoami","history","ls","cd","cat","resume","contact",
-  "python","js","metrics","theme","snake","hack","neofetch","brunofetch",
-  "date","timedatectl","weather",
-] as const;
-
-const help: string[] = [
-  "Available commands:",
-  "",
-  "  about            help · bio · skills · projects · work · social · secret",
-  "  files            ls · cd <dir> · cat <file> · resume",
-  "  system           whoami · history · date · timedatectl · weather · metrics",
-  "  interactive      contact · python · js · snake · hack",
-  "  visuals          theme <matrix|ubuntu|dracula|hacker> · neofetch · brunofetch",
-  "  shell            clear · sudo · gui · exit",
-];
+export type FsFile = { type: "file"; content: string[] | "binary"; hidden?: boolean };
+export type FsDir = { type: "dir"; children: Record<string, FsFile | FsDir>; hidden?: boolean };
 
 const bio: string[] = [
   "Ajay — IT Professional & DevOps / Cloud Infrastructure enthusiast.",
@@ -124,6 +63,51 @@ const social: string[] = [
   "  email      you@example.com",
 ];
 
+export const FS: FsDir = {
+  type: "dir",
+  children: {
+    "bio.md": { type: "file", content: bio },
+    "skills.md": { type: "file", content: skills },
+    "projects.md": { type: "file", content: projects },
+    "work.md": { type: "file", content: work },
+    "social.md": { type: "file", content: social },
+    "resume.pdf": { type: "file", content: "binary", hidden: true },
+    ".env_secret": {
+      type: "file",
+      content: [
+        "🕵️  Curiosity rewarded.",
+        "You found the hidden file. Shortcut unlocked:",
+        "    → type 'contact' to reach Ajay directly.",
+      ],
+    },
+    projects: {
+      type: "dir",
+      children: {
+        "zenoure_jewels/": { type: "dir", children: {} },
+        "telegram_bots/": { type: "dir", children: {} },
+        "selfhosted_cloud/": { type: "dir", children: {} },
+      },
+    },
+  },
+};
+
+export const COMMANDS = [
+  "help","bio","skills","projects","work","social","secret","sudo","clear",
+  "gui","exit","whoami","history","ls","cd","cat","resume","contact",
+  "metrics","theme","snake","hack","neofetch","brunofetch",
+  "date","timedatectl","weather",
+] as const;
+
+const help: string[] = [
+  "Available commands:",
+  "",
+  "  about            bio · skills · projects · work · social",
+  "  files            ls · cd <dir> · cat <file>",
+  "  system           whoami · history · date · weather · metrics · theme <matrix|ubuntu|dracula|hacker> · neofetch · brunofetch",
+  "  interactive      contact · snake · hack",
+  "  shell            clear · sudo · gui · exit",
+];
+
 const sudoMsg: string[] = [
   "[sudo] password for visitor:",
   "Permission denied: Standard user account does not have root privileges. Nice try!",
@@ -159,16 +143,26 @@ const metrics = (cmdCount: number): string[] => {
     ? Math.round(((performance as unknown as { memory: { usedJSHeapSize: number } }).memory.usedJSHeapSize) / 1024 / 1024)
     : Math.round(Math.random() * 30 + 20);
   const lat = (10 + Math.random() * 8).toFixed(1);
+
+  const W = 56; // inner width
+  const row = (label: string, value: string) => {
+    const left = `  ${label.padEnd(26)}: ${value}`;
+    return `│${left.padEnd(W)}│`;
+  };
+  const title = " portfolio.metrics ";
+  const top = `┌─${title}${"─".repeat(W - title.length - 1)}┐`;
+  const bot = `└${"─".repeat(W)}┘`;
+
   return [
-    "┌─ portfolio.metrics ─────────────────────────────────┐",
-    `│  client_memory_mb       : ${String(mem).padStart(6)}                   │`,
-    `│  active_sessions        :      1                   │`,
-    `│  http_requests_total    : ${String(42 + cmdCount).padStart(6)}                   │`,
-    `│  command_dispatches     : ${String(cmdCount).padStart(6)}                   │`,
-    `│  exec_latency_ms        : ${lat.padStart(6)}                   │`,
-    `│  uptime                 : ${formatUptime().padEnd(16)}     │`,
-    `│  bruno_sleep_efficiency : 100.0% ✅                 │`,
-    "└─────────────────────────────────────────────────────┘",
+    top,
+    row("client_memory_mb", `${mem} MB`),
+    row("active_sessions", "1"),
+    row("http_requests_total", String(42 + cmdCount)),
+    row("command_dispatches", String(cmdCount)),
+    row("exec_latency_ms", `${lat} ms`),
+    row("uptime", formatUptime()),
+    row("bruno_sleep_efficiency", "100.0% ✅"),
+    bot,
   ];
 };
 
@@ -241,10 +235,9 @@ export function runCommand(input: string, ctx: RunCtx): CommandResult {
     case "exit": return { lines: ["Closing session... launching visual interface."], gui: true };
 
     case "whoami":
-      return { lines: [`${ctx.username}@local-session`, "ip: 127.0.0.1 (local · sandboxed)", "role: visitor"] };
+      return { lines: [`${ctx.username}@local-session`, `logged in as: ${ctx.username}`, "ip: 127.0.0.1 (local · sandboxed)", "role: visitor"] };
 
     case "history":
-      // handled by Terminal (needs session list); signal via lines marker
       return { lines: ["__HISTORY__"] };
 
     case "date":
@@ -262,7 +255,12 @@ export function runCommand(input: string, ctx: RunCtx): CommandResult {
       const node = resolvePath(ctx.cwd);
       if (!node) return { lines: ["ls: cannot access path"] };
       const showHidden = args.includes("-a") || args.includes("-la") || args.includes("-al");
-      const entries = Object.keys(node.children).filter((n) => showHidden || !n.startsWith("."));
+      const entries = Object.keys(node.children).filter((n) => {
+        const child = node.children[n];
+        if (child.hidden && !showHidden) return false;
+        if (!showHidden && n.startsWith(".")) return false;
+        return true;
+      });
       const formatted = entries.map((n) => {
         const child = node.children[n];
         return child.type === "dir" ? `\x1b[dir]${n}\x1b[/]` : n;
@@ -308,8 +306,6 @@ export function runCommand(input: string, ctx: RunCtx): CommandResult {
       };
 
     case "contact": return { enterMode: "contact" };
-    case "python": case "py": return { enterMode: "repl-py", lines: ["Python 3.12.0 (vibe-build) on web", "Type 'exit()' to return to shell."] };
-    case "js": case "node": return { enterMode: "repl-js", lines: ["Node.js v22.0.0 (vibe-build) — JavaScript REPL", "Type 'exit()' to return to shell."] };
 
     case "snake": return { enterMode: "snake" };
     case "hack": return { enterMode: "hack" };
@@ -323,7 +319,7 @@ export function runCommand(input: string, ctx: RunCtx): CommandResult {
     }
   }
 
-  return { lines: [`Command not found: ${raw}. Type 'help' for a list of commands.`] };
+  return { lines: [`Permission denied! Command not found: Type 'help' for a list of commands`] };
 }
 
 export const BANNER = [

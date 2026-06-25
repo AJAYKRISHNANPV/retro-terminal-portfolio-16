@@ -470,10 +470,3 @@ Type 'help' to see the list of available commands.`}
     </div>
   );
 }
-
-function pythonRepr(v: unknown): string {
-  if (typeof v === "string") return `'${v}'`;
-  if (v === null || v === undefined) return "None";
-  if (typeof v === "boolean") return v ? "True" : "False";
-  return String(v);
-}

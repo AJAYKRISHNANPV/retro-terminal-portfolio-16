@@ -362,7 +362,7 @@ export function Terminal({ onSwitchToGui }: Props) {
     if (mode !== "shell" || !input) return <span>{input}</span>;
     const [head, ...rest] = input.split(/(\s+)/); // keep spaces
     const headLower = head.toLowerCase();
-    const valid = (COMMANDS as readonly string[]).includes(headLower) || headLower === "py" || headLower === "node";
+    const valid = (COMMANDS as readonly string[]).includes(headLower);
     const isSudo = headLower === "sudo";
     return (
       <>

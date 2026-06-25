@@ -34,7 +34,7 @@ export function Terminal({ onSwitchToGui, active = true }: Props) {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [history, input, username]);
+  }, [history, username]);
 
   const prompt = username ? `${username}@ajay-portfolio:~$` : "guest@ajay-portfolio:~$";
 

@@ -102,9 +102,10 @@ export function Terminal({ onSwitchToGui, active = true }: Props) {
   return (
     <div
       onClick={focusInput}
-      className="terminal-root relative min-h-screen w-full overflow-hidden bg-[#0a0a0a] p-3 sm:p-6 font-mono text-[13px] sm:text-[14px] leading-relaxed text-[color:var(--term-green)]"
+      className="terminal-root relative h-full w-full overflow-hidden bg-[#0a0a0a] p-3 sm:p-6 font-mono text-[13px] sm:text-[14px] leading-relaxed text-[color:var(--term-green)]"
     >
-      <div className="mx-auto flex h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-3rem)] max-w-5xl flex-col overflow-hidden rounded-lg border border-[color:var(--term-green-dim)]/40 shadow-[0_0_40px_rgba(0,255,140,0.08)]">
+      <div className="mx-auto flex h-full max-w-5xl flex-col overflow-hidden rounded-lg border border-[color:var(--term-green-dim)]/40 shadow-[0_0_40px_rgba(0,255,140,0.08)]">
+
         {/* chrome */}
         <div className="flex items-center gap-2 border-b border-[color:var(--term-green-dim)]/30 bg-black/60 px-3 py-2">
           <span className="h-3 w-3 rounded-full bg-red-500/80" />

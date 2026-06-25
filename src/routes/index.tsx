@@ -1,20 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Terminal } from "@/components/Terminal";
+import { PortfolioShell } from "@/components/PortfolioShell";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Ajay — Terminal Portfolio" },
+      { title: "Ajay — IT / DevOps Portfolio" },
       {
         name: "description",
         content:
-          "Interactive retro Linux terminal portfolio of Ajay — DevOps and Cloud Infrastructure enthusiast.",
+          "Ajay — IT & DevOps Professional. Explore as a retro Linux terminal or switch to a modern visual portfolio.",
       },
-      { property: "og:title", content: "Ajay — Terminal Portfolio" },
+      { property: "og:title", content: "Ajay — IT / DevOps Portfolio" },
       {
         property: "og:description",
         content:
-          "Interactive retro Linux terminal portfolio of Ajay — DevOps and Cloud Infrastructure enthusiast.",
+          "Ajay — IT & DevOps Professional. Retro terminal meets modern executive portfolio.",
       },
     ],
   }),
@@ -22,5 +22,5 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  return <Terminal />;
+  return <PortfolioShell />;
 }

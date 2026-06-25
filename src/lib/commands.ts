@@ -1,6 +1,7 @@
 export type CommandOutput = {
   lines: string[];
   clear?: boolean;
+  gui?: boolean;
 };
 
 const help: CommandOutput = {
@@ -92,7 +93,13 @@ const sudo: CommandOutput = {
 };
 
 const registry: Record<string, CommandOutput> = {
-  help,
+  help: {
+    lines: [
+      ...help.lines,
+      "  gui        Launch the visual portfolio",
+      "  exit       Leave the terminal (same as gui)",
+    ],
+  },
   bio,
   skills,
   projects,
@@ -101,6 +108,8 @@ const registry: Record<string, CommandOutput> = {
   secret,
   sudo,
   clear: { lines: [], clear: true },
+  gui: { lines: ["Booting visual interface..."], gui: true },
+  exit: { lines: ["Closing session... launching visual interface."], gui: true },
 };
 
 export const commandNames = Object.keys(registry);

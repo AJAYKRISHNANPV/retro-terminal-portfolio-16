@@ -7,7 +7,12 @@ type HistoryEntry = {
   output: string[];
 };
 
-export function Terminal() {
+type Props = {
+  onSwitchToGui?: () => void;
+  active?: boolean;
+};
+
+export function Terminal({ onSwitchToGui, active = true }: Props) {
   const [username, setUsername] = useState<string | null>(null);
   const [nameInput, setNameInput] = useState("");
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -47,6 +52,9 @@ export function Terminal() {
     }
     setInput("");
     setRecall(null);
+    if (result.gui && onSwitchToGui) {
+      window.setTimeout(() => onSwitchToGui(), 450);
+    }
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {

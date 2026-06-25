@@ -267,7 +267,6 @@ export function Terminal({ onSwitchToGui }: Props) {
     setRecall(null);
     if (!raw.trim() && mode !== "shell") return;
     if (mode === "shell") submitShell(raw);
-    else if (mode === "repl-py" || mode === "repl-js") submitRepl(raw);
     else if (mode === "contact") submitContact(raw);
     else if (mode === "hack") submitHack(raw);
   };

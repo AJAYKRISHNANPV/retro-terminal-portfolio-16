@@ -1,6 +1,7 @@
 export type CommandOutput = {
   lines: string[];
   clear?: boolean;
+  gui?: boolean;
 };
 
 const help: CommandOutput = {

@@ -116,13 +116,6 @@ export function runCommand(input: string): CommandOutput {
 }
 
 export const BANNER = [
-  "  ___    _                 ",
-  " / _ \\  (_)  __ _  _   _   ",
-  "| |_| | | | / _` || | | |  ",
-  "|  _  | | || (_| || |_| |  ",
-  "|_| |_|_/ | \\__,_| \\__, |  ",
-  "       |__/        |___/   ",
-  "",
-  "Welcome. Type 'help' to get started.",
+  "Hi, welcome. Please type help to know the commands to know more about me",
   "",
 ];

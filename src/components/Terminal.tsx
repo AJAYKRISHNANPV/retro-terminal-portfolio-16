@@ -156,8 +156,6 @@ export function Terminal({ onSwitchToGui }: Props) {
     }
 
     if (res.enterMode === "snake") setMode("snake");
-    else if (res.enterMode === "repl-py") setMode("repl-py");
-    else if (res.enterMode === "repl-js") setMode("repl-js");
     else if (res.enterMode === "contact") {
       setMode("contact"); setContactStep("channel");
       appendLines([

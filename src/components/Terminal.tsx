@@ -127,8 +127,9 @@ export function Terminal({ onSwitchToGui }: Props) {
   // ====== handlers ======
 
   const submitShell = (raw: string) => {
-    setSessionCmds((c) => [...c, raw]);
+    if (raw.trim()) setSessionCmds((c) => [...c, raw]);
     append({ prompt: basePrompt, command: raw, output: [] });
+    if (!raw.trim()) return;
 
     const res: CommandResult = runCommand(raw, {
       username: username ?? "guest",

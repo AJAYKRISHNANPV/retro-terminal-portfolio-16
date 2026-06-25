@@ -62,7 +62,7 @@ export function GuiPortfolio({ onLaunchTerminal }: Props) {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-y-auto bg-[radial-gradient(ellipse_at_top,_rgba(56,189,248,0.12),_transparent_60%),radial-gradient(ellipse_at_bottom_right,_rgba(168,85,247,0.10),_transparent_55%),#070710] text-white font-sans">
+    <div className="relative h-full w-full overflow-y-auto overscroll-contain bg-[radial-gradient(ellipse_at_top,_rgba(56,189,248,0.12),_transparent_60%),radial-gradient(ellipse_at_bottom_right,_rgba(168,85,247,0.10),_transparent_55%),#070710] text-white font-sans">
       {/* sticky glass nav */}
       <header className="sticky top-0 z-30 w-full border-b border-white/10 bg-white/5 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">

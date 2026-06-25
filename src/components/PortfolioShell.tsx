@@ -23,7 +23,7 @@ export function PortfolioShell() {
   const terminalActive = mode === "terminal";
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-[#0a0a0a]">
+    <div className="relative h-screen w-full overflow-hidden bg-[#0a0a0a]">
       {/* GUI layer (always mounted underneath) */}
       <div
         className={`absolute inset-0 transition-[opacity,filter,transform] duration-700 ease-out ${

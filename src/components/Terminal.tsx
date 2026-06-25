@@ -82,7 +82,6 @@ export function Terminal({ onSwitchToGui }: Props) {
   const cwdStr = cwd.length ? `~/${cwd.map((s) => s.replace(/\/$/, "")).join("/")}` : "~";
   const basePrompt = `${username ?? "guest"}@ajay-portfolio:${cwdStr}$`;
   const promptLabel = useMemo(() => {
-    if (mode === "repl-py" || mode === "repl-js") return ">>>";
     if (mode === "contact") {
       if (contactStep === "channel") return "channel (1: Email, 2: WhatsApp):";
       if (contactStep === "email-addr") return "your email:";

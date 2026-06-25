@@ -180,19 +180,6 @@ export function Terminal({ onSwitchToGui }: Props) {
     }
   };
 
-  const submitRepl = (raw: string) => {
-    append({ prompt: ">>>", command: raw, output: [] });
-    if (raw.trim() === "exit()") { setMode("shell"); appendLines(["(returned to shell)"]); return; }
-    const isJs = mode === "repl-js";
-    try {
-      // sandboxed eval — Function constructor; no globals beyond Math
-      const fn = new Function("Math", `"use strict"; return (${raw});`);
-      const val = fn(Math);
-      appendLines([isJs ? String(val) : pythonRepr(val)]);
-    } catch (e) {
-      appendLines([`${isJs ? "SyntaxError" : "Traceback (most recent call last):"}: ${(e as Error).message}`]);
-    }
-  };
 
   const submitContact = (raw: string) => {
     append({ prompt: promptLabel, command: raw, output: [] });

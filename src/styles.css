@@ -77,6 +77,38 @@
   }
 }
 
+/* Terminal theme palettes */
+[data-theme="matrix"] {
+  --term-green: oklch(0.88 0.2 145);
+  --term-green-dim: oklch(0.6 0.12 145);
+  --term-prompt: oklch(0.85 0.18 195);
+}
+[data-theme="ubuntu"] {
+  --term-green: oklch(0.78 0.17 50);
+  --term-green-dim: oklch(0.55 0.12 50);
+  --term-prompt: oklch(0.85 0.18 80);
+}
+[data-theme="dracula"] {
+  --term-green: oklch(0.78 0.17 300);
+  --term-green-dim: oklch(0.55 0.13 300);
+  --term-prompt: oklch(0.82 0.18 200);
+}
+[data-theme="hacker"] {
+  --term-green: oklch(0.86 0.18 85);
+  --term-green-dim: oklch(0.58 0.13 85);
+  --term-prompt: oklch(0.88 0.18 60);
+}
+
+/* sudo rm -rf / flash */
+@keyframes destruct-flash {
+  0%, 100% { background-color: #0a0a0a; }
+  20%, 60% { background-color: #3a0000; }
+  40%, 80% { background-color: #6a0000; }
+}
+.destruct-flash {
+  animation: destruct-flash 0.4s steps(2) infinite;
+}
+
 /* CRT glow on terminal text */
 .crt-glow {
   text-shadow:

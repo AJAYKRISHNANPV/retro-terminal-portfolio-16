@@ -78,6 +78,17 @@ export function Terminal({ onSwitchToGui }: Props) {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [history, username]);
+  useEffect(() => {
+    if (mode !== "snake") return;
+    const prevHtml = document.documentElement.style.overflow;
+    const prevBody = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.documentElement.style.overflow = prevHtml;
+      document.body.style.overflow = prevBody;
+    };
+  }, [mode]);
 
   const cwdStr = cwd.length ? `~/${cwd.map((s) => s.replace(/\/$/, "")).join("/")}` : "~";
   const basePrompt = `${username ?? "guest"}@ajay-portfolio:${cwdStr}$`;

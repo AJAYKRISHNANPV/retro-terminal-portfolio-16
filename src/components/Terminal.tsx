@@ -393,7 +393,11 @@ export function Terminal({ onSwitchToGui }: Props) {
 
         {/* screen */}
         <div className="crt-screen relative flex-1 overflow-y-auto px-3 py-3 sm:px-5 sm:py-4">
-          {!username ? (
+          {mode === "snake" && username ? (
+            <div className="absolute inset-0 z-10 flex h-full w-full items-center justify-center bg-[#0a0a0a] p-3 sm:p-6">
+              <SnakeGame onExit={() => { setMode("shell"); appendLines(["(exited snake)"]); }} />
+            </div>
+          ) : !username ? (
             <>
               <pre className="crt-glow whitespace-pre-wrap break-words">
 {`Initializing session...
@@ -442,27 +446,21 @@ Type 'help' to see the list of available commands.`}
                 </div>
               ))}
 
-              {mode === "snake" ? (
-                <SnakeGame onExit={() => { setMode("shell"); appendLines(["(exited snake)"]); }} />
-              ) : (
-                <div className="crt-glow flex items-center gap-2 break-all">
-                  <span className="text-[color:var(--term-prompt)] shrink-0">{promptLabel}</span>
-                  <span className="whitespace-pre-wrap">{inputHighlight()}</span>
-                  <span className="cursor-block" aria-hidden="true" />
-                </div>
-              )}
+              <div className="crt-glow flex items-center gap-2 break-all">
+                <span className="text-[color:var(--term-prompt)] shrink-0">{promptLabel}</span>
+                <span className="whitespace-pre-wrap">{inputHighlight()}</span>
+                <span className="cursor-block" aria-hidden="true" />
+              </div>
 
-              {mode !== "snake" && (
-                <input
-                  ref={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={onKeyDown}
-                  autoFocus autoCapitalize="off" autoCorrect="off" spellCheck={false}
-                  aria-label="Terminal command input"
-                  className="sr-only-input"
-                />
-              )}
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={onKeyDown}
+                autoFocus autoCapitalize="off" autoCorrect="off" spellCheck={false}
+                aria-label="Terminal command input"
+                className="sr-only-input"
+              />
             </>
           )}
 

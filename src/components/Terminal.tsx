@@ -9,7 +9,7 @@ type HistoryEntry = {
   output: string[];
 };
 
-type Mode = "shell" | "repl-py" | "repl-js" | "snake" | "contact" | "hack" | "selfdestruct";
+type Mode = "shell" | "snake" | "contact" | "hack" | "selfdestruct";
 
 type Props = {
   onSwitchToGui?: () => void;

@@ -51,6 +51,7 @@ export function Terminal({ onSwitchToGui }: Props) {
   const [nameInput, setNameInput] = useState("");
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [input, setInput] = useState("");
+  const [caretPos, setCaretPos] = useState(0);
   const [recall, setRecall] = useState<number | null>(null);
   const [cwd, setCwd] = useState<string[]>([]);
   const [theme, setTheme] = useState<ThemeName>("matrix");

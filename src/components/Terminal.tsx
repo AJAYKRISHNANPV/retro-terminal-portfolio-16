@@ -529,17 +529,11 @@ Type 'help' to see the list of available commands.`}
                 </div>
               ))}
 
-              <div className="crt-glow flex items-start gap-2 break-all">
+              <div className="crt-glow flex flex-wrap items-center gap-x-2 break-all">
                 <span className="text-[color:var(--term-prompt)] shrink-0">{promptLabel}</span>
-                <span className="relative inline-block whitespace-pre leading-[1.5]">
-                  {inputHighlight()}
-                  <span
-                    className="cursor-underscore absolute bottom-0"
-                    style={{ left: `${caretPos}ch` }}
-                    aria-hidden="true"
-                  >_</span>
-                </span>
+                {renderPromptLine()}
               </div>
+
 
               <input
                 ref={inputRef}

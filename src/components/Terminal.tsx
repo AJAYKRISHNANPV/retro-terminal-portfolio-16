@@ -77,6 +77,9 @@ export function Terminal({ onSwitchToGui }: Props) {
 
   useEffect(() => { focusInput(); }, [username, mode]);
   useEffect(() => {
+    setCaretPos((p) => Math.min(p, input.length));
+  }, [input]);
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [history, username]);
   useEffect(() => {

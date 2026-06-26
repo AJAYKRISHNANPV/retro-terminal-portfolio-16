@@ -64,8 +64,8 @@ export function Terminal({ onSwitchToGui }: Props) {
   const [hackStep, setHackStep] = useState<"target" | "running">("target");
 
   const [sessionCmds, setSessionCmds] = useState<string[]>([]);
-  const [sessionCmds, setSessionCmds] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+
   const nameRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const idRef = useRef(0);

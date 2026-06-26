@@ -51,6 +51,7 @@ export function Terminal({ onSwitchToGui }: Props) {
   const [nameInput, setNameInput] = useState("");
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [input, setInput] = useState("");
+  const [caretPos, setCaretPos] = useState(0);
   const [recall, setRecall] = useState<number | null>(null);
   const [cwd, setCwd] = useState<string[]>([]);
   const [theme, setTheme] = useState<ThemeName>("matrix");
@@ -75,6 +76,9 @@ export function Terminal({ onSwitchToGui }: Props) {
   };
 
   useEffect(() => { focusInput(); }, [username, mode]);
+  useEffect(() => {
+    setCaretPos((p) => Math.min(p, input.length));
+  }, [input]);
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [history, username]);
@@ -319,15 +323,23 @@ export function Terminal({ onSwitchToGui }: Props) {
       const cmds = sessionCmds.filter((c) => c.trim());
       if (!cmds.length) return;
       const next = recall === null ? cmds.length - 1 : Math.max(0, recall - 1);
-      setRecall(next); setInput(cmds[next] ?? "");
+      setRecall(next);
+      const val = cmds[next] ?? "";
+      setInput(val); setCaretPos(val.length);
+      requestAnimationFrame(() => inputRef.current?.setSelectionRange(val.length, val.length));
     }
     if (e.key === "ArrowDown") {
       e.preventDefault();
       const cmds = sessionCmds.filter((c) => c.trim());
       if (recall === null) return;
       const next = recall + 1;
-      if (next >= cmds.length) { setRecall(null); setInput(""); }
-      else { setRecall(next); setInput(cmds[next] ?? ""); }
+      if (next >= cmds.length) { setRecall(null); setInput(""); setCaretPos(0); }
+      else {
+        setRecall(next);
+        const val = cmds[next] ?? "";
+        setInput(val); setCaretPos(val.length);
+        requestAnimationFrame(() => inputRef.current?.setSelectionRange(val.length, val.length));
+      }
     }
   };
 
@@ -359,17 +371,23 @@ export function Terminal({ onSwitchToGui }: Props) {
   };
 
   const inputHighlight = () => {
-    if (mode !== "shell" || !input) return <span>{input}</span>;
+    if (mode !== "shell" || !input) return <span className="whitespace-pre">{input}</span>;
     const [head, ...rest] = input.split(/(\s+)/); // keep spaces
     const headLower = head.toLowerCase();
     const valid = (COMMANDS as readonly string[]).includes(headLower);
     const isSudo = headLower === "sudo";
     return (
-      <>
+      <span className="whitespace-pre">
         <span className={valid ? "text-[color:var(--term-green)]" : isSudo ? "text-yellow-400" : "text-red-400"}>{head}</span>
         <span>{rest.join("")}</span>
-      </>
+      </span>
     );
+  };
+
+  const syncCaret = () => {
+    const el = inputRef.current;
+    if (!el) return;
+    setCaretPos(el.selectionStart ?? el.value.length);
   };
 
   return (
@@ -446,21 +464,32 @@ Type 'help' to see the list of available commands.`}
                 </div>
               ))}
 
-              <div className="crt-glow flex items-center gap-2 break-all">
+              <div className="crt-glow flex items-start gap-2 break-all">
                 <span className="text-[color:var(--term-prompt)] shrink-0">{promptLabel}</span>
-                <span className="whitespace-pre-wrap">{inputHighlight()}</span>
-                <span className="cursor-block" aria-hidden="true" />
+                <span className="relative inline-block whitespace-pre leading-[1.5]">
+                  {inputHighlight()}
+                  <span
+                    className="cursor-underscore absolute bottom-0"
+                    style={{ left: `${caretPos}ch` }}
+                    aria-hidden="true"
+                  >_</span>
+                </span>
               </div>
 
               <input
                 ref={inputRef}
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => { setInput(e.target.value); requestAnimationFrame(syncCaret); }}
                 onKeyDown={onKeyDown}
+                onKeyUp={syncCaret}
+                onClick={syncCaret}
+                onSelect={syncCaret}
+                onFocus={syncCaret}
                 autoFocus autoCapitalize="off" autoCorrect="off" spellCheck={false}
                 aria-label="Terminal command input"
                 className="sr-only-input"
               />
+
             </>
           )}
 

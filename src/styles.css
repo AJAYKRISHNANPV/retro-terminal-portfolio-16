@@ -151,7 +151,7 @@
   z-index: 1;
 }
 
-/* Blinking block cursor */
+/* Blinking block cursor (kept for name prompt) */
 .cursor-block {
   display: inline-block;
   width: 0.6em;
@@ -159,6 +159,17 @@
   background-color: var(--term-green);
   box-shadow: 0 0 8px var(--term-green);
   transform: translateY(2px);
+  animation: terminal-blink 1s steps(1) infinite;
+}
+
+/* Classic horizontal underscore cursor */
+.cursor-underscore {
+  display: inline-block;
+  width: 1ch;
+  color: var(--term-green);
+  text-shadow: 0 0 6px var(--term-green);
+  line-height: 1;
+  pointer-events: none;
   animation: terminal-blink 1s steps(1) infinite;
 }
 

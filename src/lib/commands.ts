@@ -63,6 +63,53 @@ const social: string[] = [
   "  email      you@example.com",
 ];
 
+const zenoureJewels: string[] = [
+  "~ projects/zenoure_jewels.md",
+  "",
+  "  Zenoure Jewels — Cloud Infrastructure & DevOps",
+  "  ----------------------------------------------",
+  "  • Designed end-to-end AWS infrastructure provisioned via Terraform",
+  "    (VPC, ECS/Fargate, RDS, S3, CloudFront, Route53).",
+  "  • Authored a Jenkins + GitHub Actions CI/CD pipeline with",
+  "    automated build, test, container scan, and zero-downtime deploys.",
+  "  • Wired up centralized logging and uptime monitoring with",
+  "    CloudWatch + Grafana dashboards and alerting.",
+  "  • Hardened the stack with WAF rules, IAM least-privilege,",
+  "    automated SSL renewal, and nightly encrypted backups.",
+  "",
+  "  Stack: AWS · Terraform · Docker · Jenkins · GitHub Actions · Grafana",
+];
+
+const telegramBots: string[] = [
+  "~ projects/telegram_bots.md",
+  "",
+  "  Custom Telegram & Discord Automation Bots",
+  "  ------------------------------------------",
+  "  • Self-hosted bots written in Python and Node.js for personal",
+  "    workflows: reminders, scrapers, server health pings, and alerts.",
+  "  • n8n + webhook integrations connecting Telegram to GitHub, AWS",
+  "    billing, and home-lab metrics for one-tap operations.",
+  "  • Dockerized deployment behind a reverse proxy with auto-restart",
+  "    and structured logging for long-term reliability.",
+  "",
+  "  Stack: Python · Node.js · n8n · Docker · Telegram Bot API",
+];
+
+const selfhostedCloud: string[] = [
+  "~ projects/selfhosted_cloud.md",
+  "",
+  "  Self-Hosted Cloud & Home-Lab",
+  "  -----------------------------",
+  "  • Bare-metal Linux cluster running k3s with GitOps-style",
+  "    deployments via ArgoCD and private container registry.",
+  "  • Privacy-focused hosting stack: Nextcloud, Vaultwarden, Jellyfin,",
+  "    and personal Git server — all exposed via WireGuard VPN only.",
+  "  • Local network automation: pi-hole DNS, reverse proxy, automated",
+  "    TLS, off-site encrypted backups to S3-compatible storage.",
+  "",
+  "  Stack: Linux · k3s · ArgoCD · WireGuard · Nginx · Restic",
+];
+
 export const FS: FsDir = {
   type: "dir",
   children: {
@@ -83,9 +130,9 @@ export const FS: FsDir = {
     projects: {
       type: "dir",
       children: {
-        "zenoure_jewels/": { type: "dir", children: {} },
-        "telegram_bots/": { type: "dir", children: {} },
-        "selfhosted_cloud/": { type: "dir", children: {} },
+        "zenoure_jewels.md": { type: "file", content: zenoureJewels },
+        "telegram_bots.md": { type: "file", content: telegramBots },
+        "selfhosted_cloud.md": { type: "file", content: selfhostedCloud },
       },
     },
   },
@@ -94,7 +141,7 @@ export const FS: FsDir = {
 export const COMMANDS = [
   "help","bio","skills","projects","work","social","secret","sudo","clear",
   "gui","exit","whoami","history","ls","cd","cat","resume","contact",
-  "metrics","theme","snake","hack","neofetch","brunofetch",
+  "metrics","snake","hack",
   "date","timedatectl","weather",
 ] as const;
 
@@ -103,7 +150,7 @@ const help: string[] = [
   "",
   "  about            bio · skills · projects · work · social",
   "  files            ls · cd <dir> · cat <file>",
-  "  system           whoami · history · date · weather · metrics · theme <matrix|ubuntu|dracula|hacker> · neofetch · brunofetch",
+  "  system           whoami · history · date · weather · metrics",
   "  interactive      contact · snake · hack",
   "  shell            clear · sudo · gui · exit",
 ];
@@ -111,31 +158,6 @@ const help: string[] = [
 const sudoMsg: string[] = [
   "[sudo] password for visitor:",
   "Permission denied: Standard user account does not have root privileges. Nice try!",
-];
-
-const neofetch = (username: string): string[] => {
-  const platform = typeof navigator !== "undefined" ? navigator.platform : "Web";
-  const ua = typeof navigator !== "undefined" ? navigator.userAgent.split(") ")[0].split("(").pop() ?? "Browser" : "Browser";
-  return [
-    `     █████╗      ${username}@ajay-portfolio`,
-    `    ██╔══██╗     -------------------------`,
-    `    ███████║     OS:       ${platform}`,
-    `    ██╔══██║     Host:     Ajay's Shell v1.0`,
-    `    ██║  ██║     Kernel:   ${ua}`,
-    `    ╚═╝  ╚═╝     Shell:    Vibe-Shell`,
-    `                 Uptime:   ${formatUptime()}`,
-    `                 Theme:    retro-crt`,
-  ];
-};
-
-const brunofetch: string[] = [
-  "       __                 bruno@ajay-desk",
-  "  (___()'`;              -------------------------",
-  "  /,    /`                OS:       Goodest Boy OS (v2020)",
-  "  \\\\\"--\\\\                Host:     Under Ajay's Desk",
-  "                          Uptime:   6 years of zoomies",
-  "                          Memory:   100% allocated to treats",
-  "                          Status:   Napping 💤",
 ];
 
 const metrics = (cmdCount: number): string[] => {
@@ -201,6 +223,12 @@ export function resolvePath(cwd: string[]): FsDir | null {
   return node;
 }
 
+// Map common singular/plural folder aliases to actual directory keys.
+const DIR_ALIASES: Record<string, string> = {
+  project: "projects",
+  projects: "projects",
+};
+
 export type RunCtx = {
   username: string;
   cwd: string[];
@@ -246,9 +274,6 @@ export function runCommand(input: string, ctx: RunCtx): CommandResult {
 
     case "weather": return { lines: weather };
 
-    case "neofetch": return { lines: neofetch(ctx.username) };
-    case "brunofetch": return { lines: brunofetch };
-
     case "metrics": return { lines: metrics(ctx.cmdCount) };
 
     case "ls": {
@@ -269,32 +294,36 @@ export function runCommand(input: string, ctx: RunCtx): CommandResult {
     }
 
     case "cd": {
-      const target = args[0] ?? "";
+      const rawTarget = args[0] ?? "";
+      // strip surrounding whitespace + any trailing slashes (projects/ → projects)
+      const target = rawTarget.trim().replace(/\/+$/g, "");
       if (!target || target === "~" || target === "/") { ctx.setCwd([]); return { lines: [] }; }
       if (target === "..") { ctx.setCwd(ctx.cwd.slice(0, -1)); return { lines: [] }; }
+      if (target === ".") { return { lines: [] }; }
       const node = resolvePath(ctx.cwd);
       if (!node) return { lines: ["cd: invalid path"] };
-      const key = target.endsWith("/") ? target : `${target}/`;
-      const direct = node.children[target] ?? node.children[key];
-      if (!direct || direct.type !== "dir") return { lines: [`cd: no such directory: ${target}`] };
-      const segName = node.children[target] ? target : key;
+      const aliased = DIR_ALIASES[target.toLowerCase()] ?? target;
+      const direct = node.children[aliased] ?? node.children[target];
+      if (!direct || direct.type !== "dir") return { lines: [`cd: no such directory: ${rawTarget}`] };
+      const segName = node.children[aliased] ? aliased : target;
       ctx.setCwd([...ctx.cwd, segName]);
       return { lines: [] };
     }
 
     case "cat": {
-      const target = args[0];
-      if (!target) return { lines: ["cat: missing file operand"] };
+      const rawTarget = args[0];
+      if (!rawTarget) return { lines: ["cat: missing file operand"] };
+      const target = rawTarget.replace(/\/+$/g, "");
       const node = resolvePath(ctx.cwd);
       if (!node) return { lines: ["cat: invalid path"] };
       const f = node.children[target];
-      if (!f) return { lines: [`cat: ${target}: No such file or directory`] };
-      if (f.type === "dir") return { lines: [`cat: ${target}: Is a directory`] };
+      if (!f) return { lines: [`cat: ${rawTarget}: No such file or directory`] };
+      if (f.type === "dir") return { lines: [`cat: ${rawTarget}: Is a directory`] };
       if (f.content === "binary") {
         if (target === "resume.pdf") {
           return { lines: ["Downloading Ajay's Resume... [SUCCESS]"], download: { url: "/resume.pdf", filename: "Ajay-Resume.pdf" } };
         }
-        return { lines: [`cat: ${target}: binary file`] };
+        return { lines: [`cat: ${rawTarget}: binary file`] };
       }
       return { lines: f.content };
     }
@@ -309,14 +338,6 @@ export function runCommand(input: string, ctx: RunCtx): CommandResult {
 
     case "snake": return { enterMode: "snake" };
     case "hack": return { enterMode: "hack" };
-
-    case "theme": {
-      const t = (args[0] ?? "").toLowerCase() as ThemeName;
-      if (!["matrix","ubuntu","dracula","hacker"].includes(t)) {
-        return { lines: ["usage: theme <matrix|ubuntu|dracula|hacker>"] };
-      }
-      return { lines: [`Theme switched → ${t}`], theme: t };
-    }
   }
 
   return { lines: [`Permission denied! Command not found: Type 'help' for a list of commands`] };

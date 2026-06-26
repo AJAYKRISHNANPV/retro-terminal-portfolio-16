@@ -323,15 +323,23 @@ export function Terminal({ onSwitchToGui }: Props) {
       const cmds = sessionCmds.filter((c) => c.trim());
       if (!cmds.length) return;
       const next = recall === null ? cmds.length - 1 : Math.max(0, recall - 1);
-      setRecall(next); setInput(cmds[next] ?? "");
+      setRecall(next);
+      const val = cmds[next] ?? "";
+      setInput(val); setCaretPos(val.length);
+      requestAnimationFrame(() => inputRef.current?.setSelectionRange(val.length, val.length));
     }
     if (e.key === "ArrowDown") {
       e.preventDefault();
       const cmds = sessionCmds.filter((c) => c.trim());
       if (recall === null) return;
       const next = recall + 1;
-      if (next >= cmds.length) { setRecall(null); setInput(""); }
-      else { setRecall(next); setInput(cmds[next] ?? ""); }
+      if (next >= cmds.length) { setRecall(null); setInput(""); setCaretPos(0); }
+      else {
+        setRecall(next);
+        const val = cmds[next] ?? "";
+        setInput(val); setCaretPos(val.length);
+        requestAnimationFrame(() => inputRef.current?.setSelectionRange(val.length, val.length));
+      }
     }
   };
 

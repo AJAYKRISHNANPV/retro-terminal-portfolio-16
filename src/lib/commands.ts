@@ -223,11 +223,11 @@ export function resolvePath(cwd: string[]): FsDir | null {
   return node;
 }
 
-// Map common singular/plural folder aliases to actual directory keys.
+// Canonical directory keys (no singular aliases — strict Linux semantics).
 const DIR_ALIASES: Record<string, string> = {
-  project: "projects",
   projects: "projects",
 };
+
 
 export type RunCtx = {
   username: string;

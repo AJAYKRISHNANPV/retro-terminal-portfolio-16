@@ -263,7 +263,9 @@ export function Terminal({ onSwitchToGui }: Props) {
       appendLines([`[hack.sh] target locked: ${target}`, ""]);
       let pct = 0;
       const lines = [...HACK_LINES];
+      const token = abortRef.current;
       const tick = () => {
+        if (abortRef.current !== token) return;
         if (!lines.length) {
           appendLines([
             "  [██████████████████████████] 100%",
@@ -283,6 +285,7 @@ export function Terminal({ onSwitchToGui }: Props) {
       tick();
     }
   };
+
 
   const submit = () => {
     const raw = input;

@@ -1,4 +1,4 @@
-export type ThemeName = "matrix" | "ubuntu" | "dracula" | "hacker";
+export type ThemeName = "matrix" | "linux" | "ubuntu" | "dracula" | "hacker";
 
 export type CommandResult = {
   lines?: string[];
@@ -14,6 +14,8 @@ export type FsDir = { type: "dir"; children: Record<string, FsFile | FsDir>; hid
 
 const bio: string[] = [
   "Ajay — IT Professional & DevOps / Cloud Infrastructure enthusiast.",
+  "------------------------------------------------------------------",
+  "",
   "I build automated pipelines, wire up cloud infrastructure, and",
   "spend far too much time tinkering with Linux systems.",
   "",

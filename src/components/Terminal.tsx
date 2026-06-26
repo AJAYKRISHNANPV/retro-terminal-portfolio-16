@@ -54,7 +54,7 @@ export function Terminal({ onSwitchToGui }: Props) {
   const [caretPos, setCaretPos] = useState(0);
   const [recall, setRecall] = useState<number | null>(null);
   const [cwd, setCwd] = useState<string[]>([]);
-  const [theme, setTheme] = useState<ThemeName>("matrix");
+  const [theme, setTheme] = useState<ThemeName>("linux");
   const [mode, setMode] = useState<Mode>("shell");
   const [destructing, setDestructing] = useState(false);
   // contact wizard
@@ -305,7 +305,7 @@ export function Terminal({ onSwitchToGui }: Props) {
       const node = resolvePath(cwd) ?? FS;
       return Object.keys(node.children);
     }
-    if (head === "theme") return ["matrix","ubuntu","dracula","hacker"];
+    if (head === "theme") return ["matrix","linux","ubuntu","dracula","hacker"];
     return [];
   };
 
@@ -461,7 +461,7 @@ export function Terminal({ onSwitchToGui }: Props) {
       onClick={focusInput}
       className={`terminal-root relative h-full w-full overflow-hidden bg-[#0a0a0a] p-3 sm:p-6 font-mono text-[13px] sm:text-[14px] leading-relaxed text-[color:var(--term-green)] ${destructing ? "destruct-flash" : ""}`}
     >
-      <div className="mx-auto flex h-full max-w-5xl flex-col overflow-hidden rounded-lg border border-[color:var(--term-green-dim)]/40 shadow-[0_0_40px_rgba(0,255,140,0.08)]">
+      <div className="mx-auto flex h-full max-w-full flex-col overflow-hidden rounded-lg border border-[color:var(--term-green-dim)]/40 shadow-[0_0_40px_rgba(0,255,140,0.08)]">
 
         {/* chrome */}
         <div className="flex items-center gap-2 border-b border-[color:var(--term-green-dim)]/30 bg-black/60 px-3 py-2">

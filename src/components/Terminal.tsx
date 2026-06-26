@@ -404,19 +404,50 @@ export function Terminal({ onSwitchToGui }: Props) {
     return <span key={key}>{line}{"\n"}</span>;
   };
 
-  const inputHighlight = () => {
-    if (mode !== "shell" || !input) return <span className="whitespace-pre">{input}</span>;
-    const [head, ...rest] = input.split(/(\s+)/); // keep spaces
+  const renderHighlightedSlice = (text: string, startIdx: number, headEnd: number, headClass: string) => {
+    if (!text) return null;
+    const endIdx = startIdx + text.length;
+    if (endIdx <= headEnd) {
+      return <span className={headClass}>{text}</span>;
+    }
+    if (startIdx >= headEnd) {
+      return <span>{text}</span>;
+    }
+    const splitAt = headEnd - startIdx;
+    return (
+      <>
+        <span className={headClass}>{text.slice(0, splitAt)}</span>
+        <span>{text.slice(splitAt)}</span>
+      </>
+    );
+  };
+
+  const renderPromptLine = () => {
+    const head = input.split(/\s/)[0] ?? "";
     const headLower = head.toLowerCase();
     const valid = (COMMANDS as readonly string[]).includes(headLower);
     const isSudo = headLower === "sudo";
+    const headClass =
+      mode !== "shell" || !input
+        ? ""
+        : valid
+        ? "text-[color:var(--term-green)]"
+        : isSudo
+        ? "text-yellow-400"
+        : "text-red-400";
+    const pos = Math.min(caretPos, input.length);
+    const before = input.slice(0, pos);
+    const after = input.slice(pos);
     return (
       <span className="whitespace-pre">
-        <span className={valid ? "text-[color:var(--term-green)]" : isSudo ? "text-yellow-400" : "text-red-400"}>{head}</span>
-        <span>{rest.join("")}</span>
+        {renderHighlightedSlice(before, 0, head.length, headClass)}
+        <span className="cursor-underscore" aria-hidden="true">_</span>
+        {renderHighlightedSlice(after, pos, head.length, headClass)}
       </span>
     );
   };
+
+
 
   const syncCaret = () => {
     const el = inputRef.current;

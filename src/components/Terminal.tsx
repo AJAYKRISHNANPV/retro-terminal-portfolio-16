@@ -453,21 +453,32 @@ Type 'help' to see the list of available commands.`}
                 </div>
               ))}
 
-              <div className="crt-glow flex items-center gap-2 break-all">
+              <div className="crt-glow flex items-start gap-2 break-all">
                 <span className="text-[color:var(--term-prompt)] shrink-0">{promptLabel}</span>
-                <span className="whitespace-pre-wrap">{inputHighlight()}</span>
-                <span className="cursor-block" aria-hidden="true" />
+                <span className="relative inline-block whitespace-pre leading-[1.5]">
+                  {inputHighlight()}
+                  <span
+                    className="cursor-underscore absolute bottom-0"
+                    style={{ left: `${caretPos}ch` }}
+                    aria-hidden="true"
+                  >_</span>
+                </span>
               </div>
 
               <input
                 ref={inputRef}
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => { setInput(e.target.value); requestAnimationFrame(syncCaret); }}
                 onKeyDown={onKeyDown}
+                onKeyUp={syncCaret}
+                onClick={syncCaret}
+                onSelect={syncCaret}
+                onFocus={syncCaret}
                 autoFocus autoCapitalize="off" autoCorrect="off" spellCheck={false}
                 aria-label="Terminal command input"
                 className="sr-only-input"
               />
+
             </>
           )}
 

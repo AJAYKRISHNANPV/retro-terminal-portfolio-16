@@ -65,9 +65,12 @@ export function Terminal({ onSwitchToGui }: Props) {
 
   const [sessionCmds, setSessionCmds] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+
   const nameRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const idRef = useRef(0);
+  const abortRef = useRef(0);
+
 
   const focusInput = () => {
     if (mode === "snake") return;
@@ -116,9 +119,11 @@ export function Terminal({ onSwitchToGui }: Props) {
 
   const streamLines = (lines: string[], delay: number, onDone?: () => void) => {
     const id = nextId();
+    const token = abortRef.current;
     setHistory((h) => [...h, { id, output: [] }]);
     let i = 0;
     const tick = () => {
+      if (abortRef.current !== token) return;
       if (i >= lines.length) { onDone?.(); return; }
       const line = lines[i++];
       setHistory((h) => h.map((e) => e.id === id ? { ...e, output: [...e.output, line] } : e));
@@ -126,6 +131,7 @@ export function Terminal({ onSwitchToGui }: Props) {
     };
     tick();
   };
+
 
   const triggerDownload = (url: string, filename?: string) => {
     try {
@@ -257,7 +263,9 @@ export function Terminal({ onSwitchToGui }: Props) {
       appendLines([`[hack.sh] target locked: ${target}`, ""]);
       let pct = 0;
       const lines = [...HACK_LINES];
+      const token = abortRef.current;
       const tick = () => {
+        if (abortRef.current !== token) return;
         if (!lines.length) {
           appendLines([
             "  [██████████████████████████] 100%",
@@ -277,6 +285,7 @@ export function Terminal({ onSwitchToGui }: Props) {
       tick();
     }
   };
+
 
   const submit = () => {
     const raw = input;
@@ -301,10 +310,35 @@ export function Terminal({ onSwitchToGui }: Props) {
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    // Ctrl+C — interrupt
+    if (e.ctrlKey && (e.key === "c" || e.key === "C")) {
+      e.preventDefault();
+      const raw = input;
+      if (mode === "shell") {
+        append({ prompt: basePrompt, command: `${raw}^C`, output: [] });
+      } else {
+        // abort any running stream / wizard
+        abortRef.current += 1;
+        append({ prompt: promptLabel, command: `${raw}^C`, output: [] });
+        appendLines(["(interrupted)"]);
+        setMode("shell");
+        setContactStep("channel");
+        setHackStep("target");
+      }
+      setInput(""); setCaretPos(0); setRecall(null);
+      return;
+    }
+    // Ctrl+X — clear current input buffer
+    if (e.ctrlKey && (e.key === "x" || e.key === "X")) {
+      e.preventDefault();
+      setInput(""); setCaretPos(0); setRecall(null);
+      return;
+    }
     if (e.key === "Enter") { e.preventDefault(); submit(); return; }
     if (e.key === "Tab") {
       e.preventDefault();
       if (!input.trim()) return;
+
       const tokens = input.split(/\s+/);
       const last = tokens[tokens.length - 1] ?? "";
       if (!last) return;
@@ -370,19 +404,50 @@ export function Terminal({ onSwitchToGui }: Props) {
     return <span key={key}>{line}{"\n"}</span>;
   };
 
-  const inputHighlight = () => {
-    if (mode !== "shell" || !input) return <span className="whitespace-pre">{input}</span>;
-    const [head, ...rest] = input.split(/(\s+)/); // keep spaces
+  const renderHighlightedSlice = (text: string, startIdx: number, headEnd: number, headClass: string) => {
+    if (!text) return null;
+    const endIdx = startIdx + text.length;
+    if (endIdx <= headEnd) {
+      return <span className={headClass}>{text}</span>;
+    }
+    if (startIdx >= headEnd) {
+      return <span>{text}</span>;
+    }
+    const splitAt = headEnd - startIdx;
+    return (
+      <>
+        <span className={headClass}>{text.slice(0, splitAt)}</span>
+        <span>{text.slice(splitAt)}</span>
+      </>
+    );
+  };
+
+  const renderPromptLine = () => {
+    const head = input.split(/\s/)[0] ?? "";
     const headLower = head.toLowerCase();
     const valid = (COMMANDS as readonly string[]).includes(headLower);
     const isSudo = headLower === "sudo";
+    const headClass =
+      mode !== "shell" || !input
+        ? ""
+        : valid
+        ? "text-[color:var(--term-green)]"
+        : isSudo
+        ? "text-yellow-400"
+        : "text-red-400";
+    const pos = Math.min(caretPos, input.length);
+    const before = input.slice(0, pos);
+    const after = input.slice(pos);
     return (
       <span className="whitespace-pre">
-        <span className={valid ? "text-[color:var(--term-green)]" : isSudo ? "text-yellow-400" : "text-red-400"}>{head}</span>
-        <span>{rest.join("")}</span>
+        {renderHighlightedSlice(before, 0, head.length, headClass)}
+        <span className="cursor-underscore" aria-hidden="true">_</span>
+        {renderHighlightedSlice(after, pos, head.length, headClass)}
       </span>
     );
   };
+
+
 
   const syncCaret = () => {
     const el = inputRef.current;
@@ -464,17 +529,11 @@ Type 'help' to see the list of available commands.`}
                 </div>
               ))}
 
-              <div className="crt-glow flex items-start gap-2 break-all">
+              <div className="crt-glow flex flex-wrap items-center gap-x-2 break-all">
                 <span className="text-[color:var(--term-prompt)] shrink-0">{promptLabel}</span>
-                <span className="relative inline-block whitespace-pre leading-[1.5]">
-                  {inputHighlight()}
-                  <span
-                    className="cursor-underscore absolute bottom-0"
-                    style={{ left: `${caretPos}ch` }}
-                    aria-hidden="true"
-                  >_</span>
-                </span>
+                {renderPromptLine()}
               </div>
+
 
               <input
                 ref={inputRef}

@@ -115,7 +115,6 @@ export const FS: FsDir = {
   children: {
     "bio.md": { type: "file", content: bio },
     "skills.md": { type: "file", content: skills },
-    "projects.md": { type: "file", content: projects },
     "work.md": { type: "file", content: work },
     "social.md": { type: "file", content: social },
     "resume.pdf": { type: "file", content: "binary", hidden: true },
@@ -137,6 +136,7 @@ export const FS: FsDir = {
     },
   },
 };
+
 
 export const COMMANDS = [
   "help","bio","skills","projects","work","social","secret","sudo","clear",
@@ -223,11 +223,11 @@ export function resolvePath(cwd: string[]): FsDir | null {
   return node;
 }
 
-// Map common singular/plural folder aliases to actual directory keys.
+// Canonical directory keys (no singular aliases — strict Linux semantics).
 const DIR_ALIASES: Record<string, string> = {
-  project: "projects",
   projects: "projects",
 };
+
 
 export type RunCtx = {
   username: string;

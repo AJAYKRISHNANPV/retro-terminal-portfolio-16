@@ -360,17 +360,23 @@ export function Terminal({ onSwitchToGui }: Props) {
   };
 
   const inputHighlight = () => {
-    if (mode !== "shell" || !input) return <span>{input}</span>;
+    if (mode !== "shell" || !input) return <span className="whitespace-pre">{input}</span>;
     const [head, ...rest] = input.split(/(\s+)/); // keep spaces
     const headLower = head.toLowerCase();
     const valid = (COMMANDS as readonly string[]).includes(headLower);
     const isSudo = headLower === "sudo";
     return (
-      <>
+      <span className="whitespace-pre">
         <span className={valid ? "text-[color:var(--term-green)]" : isSudo ? "text-yellow-400" : "text-red-400"}>{head}</span>
         <span>{rest.join("")}</span>
-      </>
+      </span>
     );
+  };
+
+  const syncCaret = () => {
+    const el = inputRef.current;
+    if (!el) return;
+    setCaretPos(el.selectionStart ?? el.value.length);
   };
 
   return (

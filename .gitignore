@@ -33,3 +33,4 @@ dist-ssr
 
 # TanStack Router auto-generated files
 src/routeTree.gen.ts
+package-lock.json

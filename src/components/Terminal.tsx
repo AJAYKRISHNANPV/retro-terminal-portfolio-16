@@ -310,10 +310,35 @@ export function Terminal({ onSwitchToGui }: Props) {
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    // Ctrl+C — interrupt
+    if (e.ctrlKey && (e.key === "c" || e.key === "C")) {
+      e.preventDefault();
+      const raw = input;
+      if (mode === "shell") {
+        append({ prompt: basePrompt, command: `${raw}^C`, output: [] });
+      } else {
+        // abort any running stream / wizard
+        abortRef.current += 1;
+        append({ prompt: promptLabel, command: `${raw}^C`, output: [] });
+        appendLines(["(interrupted)"]);
+        setMode("shell");
+        setContactStep("channel");
+        setHackStep("target");
+      }
+      setInput(""); setCaretPos(0); setRecall(null);
+      return;
+    }
+    // Ctrl+X — clear current input buffer
+    if (e.ctrlKey && (e.key === "x" || e.key === "X")) {
+      e.preventDefault();
+      setInput(""); setCaretPos(0); setRecall(null);
+      return;
+    }
     if (e.key === "Enter") { e.preventDefault(); submit(); return; }
     if (e.key === "Tab") {
       e.preventDefault();
       if (!input.trim()) return;
+
       const tokens = input.split(/\s+/);
       const last = tokens[tokens.length - 1] ?? "";
       if (!last) return;

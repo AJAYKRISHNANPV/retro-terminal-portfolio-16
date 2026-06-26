@@ -119,9 +119,11 @@ export function Terminal({ onSwitchToGui }: Props) {
 
   const streamLines = (lines: string[], delay: number, onDone?: () => void) => {
     const id = nextId();
+    const token = abortRef.current;
     setHistory((h) => [...h, { id, output: [] }]);
     let i = 0;
     const tick = () => {
+      if (abortRef.current !== token) return;
       if (i >= lines.length) { onDone?.(); return; }
       const line = lines[i++];
       setHistory((h) => h.map((e) => e.id === id ? { ...e, output: [...e.output, line] } : e));
@@ -129,6 +131,7 @@ export function Terminal({ onSwitchToGui }: Props) {
     };
     tick();
   };
+
 
   const triggerDownload = (url: string, filename?: string) => {
     try {
